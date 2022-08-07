@@ -1,7 +1,7 @@
 # oxigrad
 
 ## What it is?
-This is a partial port of [capmangrad](https://github.com/dsprn/capmangrad) to the Rust programming language, just to get a feel of how the language works.
+This is a partial port of [capmangrad](https://github.com/dsprn/capmangrad) to the Rust programming language, just to get a feeling of how the language works.
 This implementation lacks most of the features capmangrad added on top of [micrograd](https://github.com/karpathy/micrograd). For a complete list see the todos below.
 
 ## How to use it
