@@ -49,8 +49,6 @@ pub fn group(data: Vec<[f64; 2]>, labels: Vec<f64>, k: Option<usize>) -> (Vec<Ve
     let mut start = 0;
 
     for _ in 0..group_size {
-        // data_groups.push(Vec::from_iter(data[start..start+size].iter().cloned()));
-        // labels_groups.push(Vec::from_iter(labels[start..start+size].iter().cloned()));
         data_groups.push(Vec::from(data[start..start+size].to_vec()));
         labels_groups.push(Vec::from_iter(labels[start..start+size].iter().cloned()));
         start += size;

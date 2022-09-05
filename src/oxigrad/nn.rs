@@ -121,8 +121,6 @@ impl Model {
     pub fn new(input_size: usize, arch: &Vec<usize>) -> Self {
         // initialize NN architecture
         let mut nn_arch = Vec::new();
-        // nn_arch.push(input_size);
-        // nn_arch.extend_from_slice(arch);
         nn_arch.push(input_size);
         nn_arch.extend(arch);
 

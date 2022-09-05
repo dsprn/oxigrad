@@ -162,7 +162,7 @@ impl Value {
         fn topological_sort(node: &Value, visited: &mut HashSet<Value>, tp_order: &mut Vec<Value>) {
             if !visited.contains(&node) {
                 visited.insert(node.clone());
-                // for c in node.children.as_ref().unwrap().iter() {
+
                 match node.core.borrow().children.as_ref() {
                     Some(v) => {
                         for c in v.iter() {
@@ -194,7 +194,6 @@ impl Value {
 
     pub fn power(&self, exp: f64) -> Self {
         let out = Value::new((
-            // self.core.borrow().data.get().powf(exp),
             self.get_data().powf(exp),
             Some(Operation::Power),
             Some(vec![self.clone()]),
@@ -271,7 +270,6 @@ impl ops::Add<&Value> for &Value {
 
     fn add(self, other: &Value) -> Self::Output {
         let out = Value::new((
-            // self.core.borrow().data.get() + other.core.borrow().data.get(),
             self.get_data() + other.get_data(),
             Some(Operation::Addition),
             Some(vec![self.clone(), other.clone()]),
@@ -331,7 +329,6 @@ impl ops::Mul<&Value> for &Value {
 
     fn mul(self, other: &Value) -> Self::Output {
         let out = Value::new((
-            // self.core.borrow().data.get() * other.core.borrow().data.get(),
             self.get_data() * other.get_data(),
             Some(Operation::Multiplication),
             Some(vec![self.clone(), other.clone()]),

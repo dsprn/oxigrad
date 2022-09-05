@@ -15,8 +15,6 @@ fn main() {
     // and, in general, to do some tuning before training the resulting NN
     let arch = vec![5, 5, 1];
     let m = Model::new(2, &arch);
-    // let mut alpha = 0.19;
-    // let alpha = 1.0 - 0.9 * pass as f64 / 500.0;
 
     // cross validation to find best L2 lambda hyperparameter
     // data generated with scikit-learn's make_moon method (n_samples=100, noise=0.1)
@@ -30,7 +28,6 @@ fn main() {
         10,
     );
     let l2_lambda = xv.search_best_hyperpar();
-    // let l2_lambda = 1e-4;
     println!("==> L2 lambda value={:.4}", l2_lambda);
 
     println!("\n==> Choosing inputs and relative label from a preloaded dataset...");
@@ -40,7 +37,6 @@ fn main() {
     println!("==> Input values={:?}", inputs);
     println!("==> Expected value={}", label);
 
-    // let mut pass = 1;
     println!("\n==> Start training the model...");
     let iterations = 50;
     for pass in 0..iterations {
