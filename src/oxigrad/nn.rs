@@ -36,7 +36,7 @@ impl Neuron {
     fn new(num_weights: usize, nonlin: bool) -> Self {
         Neuron {
             weights: (0..num_weights)
-                .map(|_| thread_rng().gen_range::<f32>(-1.0, 1.0))
+                .map(|_| thread_rng().gen_range::<f64>(-1.0, 1.0))
                 .map(|v| Value::new(v))
                 .collect(),
             bias: Value::new(0.0),
@@ -118,11 +118,13 @@ impl Base for Model {
 }
 
 impl Model {
-    pub fn new(input_size: usize, arch: &[usize]) -> Self {
+    pub fn new(input_size: usize, arch: &Vec<usize>) -> Self {
         // initialize NN architecture
         let mut nn_arch = Vec::new();
+        // nn_arch.push(input_size);
+        // nn_arch.extend_from_slice(arch);
         nn_arch.push(input_size);
-        nn_arch.extend_from_slice(arch);
+        nn_arch.extend(arch);
 
         // initialize model
         let mut m = Model {
@@ -141,17 +143,19 @@ impl Model {
         m
     }
 
-    pub fn forward(&self, inputs: &[f32; 2]) -> Vec<Value> {
+    // pub fn forward(&self, inputs: &[f64; 2]) -> Vec<Value> {
+    pub fn forward(&self, inputs: &[f64; 2]) -> Value {
         // multiply inputs for each layers and collect results
-        let is = inputs
+        let mut is: Vec<Value> = inputs
             .iter()
             .map(|v| Value::new(*v))
             .collect();
 
-        self.layers.iter().fold(is, |mut acc, layer| {
-            acc = layer.forward(acc);
-            acc
-        })
+        for l in &self.layers {
+            is = l.forward(is);
+        }
+
+        is[0].clone()
     }
 }
 
@@ -159,7 +163,7 @@ impl Model {
 mod test {
     use super::*;
 
-    fn grad_sum(params: Vec<Value>) -> f32 {
+    fn grad_sum(params: Vec<Value>) -> f64 {
         let grads = params.iter()
             .fold(0.0, |mut s, v| { s += v.core.borrow().grad.get(); s });
         
@@ -190,7 +194,7 @@ mod test {
 
     #[test]
     fn test_model() {
-        let m = Model::new(8, &[4, 2]);
+        let m = Model::new(8, &vec![4, 2]);
 
         assert!(m.layers.first().unwrap().neurons.len() == 4);
         assert!(m.layers.last().unwrap().neurons.len() == 2);

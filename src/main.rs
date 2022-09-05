@@ -1,51 +1,75 @@
-// TODO: implement new loss functions
-// TODO: implement L2 regularization
-// TODO: implement cross validation
 // TODO: implement model export to some kind of file
-
 mod oxigrad;
 
 use oxigrad::nn::Model;
-use oxigrad::utils::mse;
+use oxigrad::utils::{mse, svm_maxmargin, l2, alpha};
+use oxigrad::data::{INP_DATASET, LBLS_DATASET};
+use rand::Rng;
 use crate::oxigrad::nn::Base;
-
+use crate::oxigrad::engine::Value;
+use crate::oxigrad::xval::{XVal, FloatingRange};
 
 fn main() {
-    let m = Model::new(2, &[2, 2, 1]);
-    let expected = 2.314;
-    let alpha = 0.03;
-    let acceptable_loss = 0.000005 as f32;
+    // WATCH OUT, changing the following hyperparameter (i.e. the NN architecture)
+    // could require to change other hyperparameters as well like the alpha
+    // and, in general, to do some tuning before training the resulting NN
+    let arch = vec![5, 5, 1];
+    let m = Model::new(2, &arch);
+    // let mut alpha = 0.19;
+    // let alpha = 1.0 - 0.9 * pass as f64 / 500.0;
 
-    // forward pass + loss
-    let mut pred;
-    let mut loss_value;
-    let mut loss = f32::MAX;
+    // cross validation to find best L2 lambda hyperparameter
+    // data generated with scikit-learn's make_moon method (n_samples=100, noise=0.1)
+    let mut xv = XVal::new(
+        INP_DATASET.to_vec(),
+        LBLS_DATASET.to_vec(), 
+        &arch, 
+        FloatingRange::new(0.0, 0.01, 0.0005), 
+        alpha, 
+        mse,
+        10,
+    );
+    let l2_lambda = xv.search_best_hyperpar();
+    // let l2_lambda = 1e-4;
+    println!("==> L2 lambda value={:.4}", l2_lambda);
 
-    let mut epoch = 0;
-    println!("==> Expected value={}", expected);
-    println!("==> Start training the model...");
-    while loss > acceptable_loss {
-        epoch += 1;
+    println!("\n==> Choosing inputs and relative label from a preloaded dataset...");
+    let data_index = rand::thread_rng().gen_range(0, 100);
+    let inputs = INP_DATASET[data_index];
+    let label = LBLS_DATASET[data_index];
+    println!("==> Input values={:?}", inputs);
+    println!("==> Expected value={}", label);
+
+    // let mut pass = 1;
+    println!("\n==> Start training the model...");
+    let iterations = 50;
+    for pass in 0..iterations {
+        // prepping
         m.zero_grad();
 
         // forward pass
-        pred = m.forward(&[0.342, -1.876]);
-        loss_value = mse(&pred[0], expected);
-        loss = loss_value.core.borrow().data.get();
+        let preds = m.forward(&inputs);
+        let loss = mse(&preds, label);
+        // let loss = svm_maxmargin(&preds, label);
+
+        // L2 regularization
+        let reg = l2(&m.params(), Some(&Value::new(l2_lambda)));
+        let tot_loss = &loss + &reg;
 
         // backward pass
-        loss_value.backward(); 
-        // update model params
+        tot_loss.backward(); 
         for p in m.params().iter() {
-            p.core.borrow().data.set(p.core.borrow().data.get() - (alpha * p.core.borrow().grad.get()));
+            p.core.borrow().data.set(p.get_data() - (alpha(pass, iterations) * p.get_grad()));
         }
 
-        // print results
         println!(
-            "epoch:{}, prediction:{}, loss:{}", 
-            epoch,
-            pred[0].core.borrow().data.get(),
-            loss_value.core.borrow().data.get(),
+            "pass={}, alpha={:.16}, prediction={:.16}, reg={:.16}, loss={:.16}, tot_loss={:.16}", 
+            pass,
+            alpha(pass, iterations),
+            preds.get_data(),
+            reg.get_data(),
+            loss.get_data(),
+            tot_loss.get_data(),
         );
     }
     println!("==> DONE");

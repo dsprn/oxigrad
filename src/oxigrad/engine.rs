@@ -17,8 +17,8 @@ pub enum Operation {
 }
 
 pub struct Core {
-    pub data: Rc<Cell<f32>>,
-    pub grad: Rc<Cell<f32>>,
+    pub data: Rc<Cell<f64>>,
+    pub grad: Rc<Cell<f64>>,
     op: Option<Operation>,
     pub children: Option<Vec<Value>>,
     backward: Option<Box<dyn Fn() -> ()>>,
@@ -34,17 +34,12 @@ impl Debug for Core {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Value {
-    pub core: Rc<RefCell<Core>>,
-}
-
 pub trait ValueConstructors {
     fn construct(self) -> Value;
 }
 
 // constructor requiring fields: data
-impl ValueConstructors for f32 {
+impl ValueConstructors for f64 {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -59,7 +54,7 @@ impl ValueConstructors for f32 {
 }
 
 // constructor requiring fields: data, grad
-impl ValueConstructors for (f32, f32) {
+impl ValueConstructors for (f64, f64) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -74,7 +69,7 @@ impl ValueConstructors for (f32, f32) {
 }
 
 // constructor requiring fields: data, op
-impl ValueConstructors for (f32, Option<Operation>) {
+impl ValueConstructors for (f64, Option<Operation>) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -89,7 +84,7 @@ impl ValueConstructors for (f32, Option<Operation>) {
 }
 
 // constructor requiring fields: data, grad, op
-impl ValueConstructors for (f32, f32, Option<Operation>) {
+impl ValueConstructors for (f64, f64, Option<Operation>) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -104,7 +99,7 @@ impl ValueConstructors for (f32, f32, Option<Operation>) {
 }
 
 // constructor requiring fields: data, op, children
-impl ValueConstructors for (f32, Option<Operation>, Option<Vec<Value>>) {
+impl ValueConstructors for (f64, Option<Operation>, Option<Vec<Value>>) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -119,7 +114,7 @@ impl ValueConstructors for (f32, Option<Operation>, Option<Vec<Value>>) {
 }
 
 // constructor requiring fields: data, grad, op, children
-impl ValueConstructors for (f32, f32, Option<Operation>, Option<Vec<Value>>) {
+impl ValueConstructors for (f64, f64, Option<Operation>, Option<Vec<Value>>) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -134,7 +129,7 @@ impl ValueConstructors for (f32, f32, Option<Operation>, Option<Vec<Value>>) {
 }
 
 // constructor requiring fields: data, grad, op, children, backward
-impl ValueConstructors for (f32, f32, Option<Operation>, Option<Vec<Value>>, Option<Box<dyn Fn() -> ()>>) {
+impl ValueConstructors for (f64, f64, Option<Operation>, Option<Vec<Value>>, Option<Box<dyn Fn() -> ()>>) {
     fn construct(self) -> Value {
         Value {
             core: Rc::new(RefCell::new(Core {
@@ -148,8 +143,13 @@ impl ValueConstructors for (f32, f32, Option<Operation>, Option<Vec<Value>>, Opt
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct Value {
+    pub core: Rc<RefCell<Core>>,
+}
+
 impl Value {
-    pub fn new<V>(args: V) -> Self 
+    pub fn new<V>(args: V) -> Value 
         where V: ValueConstructors
     {
         args.construct()
@@ -179,7 +179,7 @@ impl Value {
         topological_sort(self, &mut visited, &mut tp_order);
         
         // a derivative of something (i.e. the starting node for the backward pass) w.r.t itself is 1
-        self.core.borrow().grad.set(1.0);
+        self.set_grad(1.0);
 
         // backward pass on reversed topological order
         for v in tp_order.iter().rev() {
@@ -192,9 +192,10 @@ impl Value {
         }
     }
 
-    pub fn power(&self, exp: f32) -> Self {
+    pub fn power(&self, exp: f64) -> Self {
         let out = Value::new((
-            self.core.borrow().data.get().powf(exp),
+            // self.core.borrow().data.get().powf(exp),
+            self.get_data().powf(exp),
             Some(Operation::Power),
             Some(vec![self.clone()]),
         ));
@@ -213,7 +214,7 @@ impl Value {
     }
 
     pub fn relu(&self) -> Self {
-        let data = if self.core.borrow().data.get() >= 0.0 { self.core.borrow().data.get() } else { 0.0 };
+        let data = if self.get_data() >= 0.0 { self.get_data() } else { 0.0 };
         let out = Value::new((
             data,
             Some(Operation::ReLU),
@@ -231,6 +232,22 @@ impl Value {
         out.core.borrow_mut().backward = Some(back);
 
         out
+    }
+
+    pub fn get_data(&self) -> f64 {
+        self.core.borrow().data.get()
+    }
+
+    pub fn set_data(&self, val: f64) -> () {
+        self.core.borrow().data.set(val);
+    }
+
+    pub fn get_grad(&self) -> f64 {
+        self.core.borrow().grad.get()
+    }
+
+    pub fn set_grad(&self, val: f64) -> () {
+        self.core.borrow().grad.set(val);
     }
 
 }
@@ -254,7 +271,8 @@ impl ops::Add<&Value> for &Value {
 
     fn add(self, other: &Value) -> Self::Output {
         let out = Value::new((
-            self.core.borrow().data.get() + other.core.borrow().data.get(),
+            // self.core.borrow().data.get() + other.core.borrow().data.get(),
+            self.get_data() + other.get_data(),
             Some(Operation::Addition),
             Some(vec![self.clone(), other.clone()]),
         ));
@@ -282,12 +300,39 @@ impl ops::Add<&Value> for Value {
     }
 }
 
+impl ops::Add<Value> for &Value {
+    type Output = Value;
+
+    fn add(self, other: Value) -> Self::Output {
+        self + &other
+    }
+}
+
+impl ops::Add<f64> for &Value {
+    type Output = Value;
+
+    fn add(self, other: f64) -> Self::Output {
+        self + Value::new(other)
+    }
+}
+
+// FIXME: should not disrupt computational graph as the returned Value'll be the basis of backprop
+impl<'a> std::iter::Sum<&'a Value> for Value {
+    fn sum<I: Iterator<Item = &'a Value>>(iter: I) -> Self {
+        iter.fold(
+            Value::new(0.0), 
+            |sum, el| sum + el,
+        )
+    }
+}
+
 impl ops::Mul<&Value> for &Value {
     type Output = Value;
 
     fn mul(self, other: &Value) -> Self::Output {
         let out = Value::new((
-            self.core.borrow().data.get() * other.core.borrow().data.get(),
+            // self.core.borrow().data.get() * other.core.borrow().data.get(),
+            self.get_data() * other.get_data(),
             Some(Operation::Multiplication),
             Some(vec![self.clone(), other.clone()]),
         ));
@@ -314,7 +359,15 @@ impl ops::Mul<&Value> for Value {
     type Output = Value;
 
     fn mul(self, other: &Value) -> Self::Output {
-        &self * &other
+        &self * other
+    }
+}
+
+impl ops::Mul<Value> for &Value {
+    type Output = Value;
+
+    fn mul(self, other: Value) -> Self::Output {
+        self * &other
     }
 }
 
@@ -350,11 +403,18 @@ impl ops::Sub<Value> for Value {
     }
 }
 
+impl ops::Div<f64> for Value {
+    type Output = Value;
+
+    fn div(self, other: f64) -> Self::Output {
+        self * &Value::new(1.0/other)
+    }
+}
+
 impl ops::Div<&Value> for &Value {
     type Output = Value;
 
     fn div(self, other: &Value) -> Self::Output {
-        // self * other.power(-1.0)
         self * &other.power(-1.0)
     }
 }
@@ -362,10 +422,9 @@ impl ops::Div<&Value> for &Value {
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VALUE")
-            .field("DATA", &self.core.borrow().data)
-            .field("GRAD", &self.core.borrow().grad)
+            .field("DATA", &self.get_data())
+            .field("GRAD", &self.get_grad())
             .field("OP", &self.core.borrow().op)
-            // .field("CHILDREN", &self.core.borrow().children) // not printing the vector as it could be pretty long, depending on the architecture of the network
             .finish()
     }
 }
@@ -382,12 +441,12 @@ mod test {
         let ref d = c + b;
 
         // testing operation
-        assert_eq!(c.core.borrow().data.get(), 3.0);
-        assert_eq!(d.core.borrow().data.get(), 5.0);
+        assert_eq!(c.get_data(), 3.0);
+        assert_eq!(d.get_data(), 5.0);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), 2.0);
+        assert_eq!(b.get_grad(), 2.0);
     }
 
     #[test]
@@ -398,12 +457,12 @@ mod test {
         let ref d = c - b;
 
         // testing operation
-        assert_eq!(c.core.borrow().data.get(), -1.0);
-        assert_eq!(d.core.borrow().data.get(), -3.0);
+        assert_eq!(c.get_data(), -1.0);
+        assert_eq!(d.get_data(), -3.0);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), -2.0);
+        assert_eq!(b.get_grad(), -2.0);
     }
 
     #[test]
@@ -414,11 +473,11 @@ mod test {
         let d = c * b;
 
         // testing operation
-        assert_eq!(d.core.borrow().data.get(), 6.0);
+        assert_eq!(d.get_data(), 6.0);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), 5.0);
+        assert_eq!(b.get_grad(), 5.0);
     }
 
     #[test]
@@ -429,11 +488,11 @@ mod test {
         let d = c * b;
 
         // testing operation
-        assert_eq!(d.core.borrow().data.get(), -2.0);
+        assert_eq!(d.get_data(), -2.0);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), -3.0);
+        assert_eq!(b.get_grad(), -3.0);
     }
 
     #[test]
@@ -444,11 +503,11 @@ mod test {
         let d = c.power(2.0);
 
         // testing operation
-        assert_eq!(d.core.borrow().data.get(), 9.0);
+        assert_eq!(d.get_data(), 9.0);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), 6.0);
+        assert_eq!(b.get_grad(), 6.0);
     }
 
     #[test]
@@ -460,11 +519,11 @@ mod test {
         let e = d * &Value::new(2.0);
 
         // testing operation
-        assert_eq!(e.core.borrow().data.get(), 10.0);
+        assert_eq!(e.get_data(), 10.0);
 
         // testing derivative
         e.backward();
-        assert_eq!(b.core.borrow().grad.get(), 4.0);
+        assert_eq!(b.get_grad(), 4.0);
     }
 
     #[test]
@@ -476,11 +535,11 @@ mod test {
         let e = d * &Value::new(2.0);
 
         // testing operation
-        assert_eq!(e.core.borrow().data.get(), 0.0);
+        assert_eq!(e.get_data(), 0.0);
 
         // testing derivative
         e.backward();
-        assert_eq!(b.core.borrow().grad.get(), 0.0);
+        assert_eq!(b.get_grad(), 0.0);
     }
 
     #[test]
@@ -491,10 +550,52 @@ mod test {
         let d = c / b;
 
         // testing operation
-        assert_eq!(d.core.borrow().data.get(), 1.5);
+        assert_eq!(d.get_data(), 1.5);
 
         // testing derivative
         d.backward();
-        assert_eq!(b.core.borrow().grad.get(), -0.25);
+        assert_eq!(b.get_grad(), -0.25);
+    }
+
+    #[test]
+    fn test_constructors() {
+        let v1 = Value::new((
+            3.141592,
+            Some(Operation::None),
+            None,
+        ));
+        assert_eq!(v1.get_data(), 3.141592);
+        assert_eq!(v1.get_grad(), 0.0);
+
+        let v2 = Value::new((
+            3.141592 + 5.0,
+            Some(Operation::None),
+            None,
+        ));
+        assert_eq!(v2.get_data(), 8.141592);
+        assert_eq!(v2.get_grad(), 0.0);
+
+        let v3 = Value::new((
+            (v1.get_data() * v2.get_data() * 1_000_f64).round() / 1_000_f64,
+            Some(Operation::None),
+            None,
+        ));
+        assert_eq!(v3.get_data(), 25.578);
+        assert_eq!(v3.get_grad(), 0.0);
+    }
+
+    #[test]
+    fn test_get_set() {
+        let v = Value::new((
+            3.14159265,
+            0.99999999,
+        ));
+        assert_eq!(v.get_data(), 3.14159265);
+        assert_eq!(v.get_grad(), 0.99999999);
+
+        v.set_data(1.2345);
+        v.set_grad(6.7890);
+        assert_eq!(v.get_data(), 1.2345);
+        assert_eq!(v.get_grad(), 6.7890);
     }
 }
