@@ -84,7 +84,7 @@ mod test {
 
     #[test]
     fn test_alpha() {
-        assert_eq!((alpha(314, 500) * 10_000_f64).round() / 10_000_f64, 0.4348);
+        assert_eq!((alpha(314, 500) * 10_000_f64).round() / 10_000_f64, 0.0174);
     }
 
     #[test]
