@@ -106,7 +106,7 @@ impl<'a> XVal<'a> {
             }
 
             let avg_score = scores.iter().sum::<f64>() / scores.len() as f64;
-            println!("hyperpar={:.4}, accuracy={:.16}", h, avg_score);
+            println!("hyperpar={:.4}, accuracy={:.0}%", h, avg_score*100.0);
 
             // checking if score's already present in HashMap
             // if not add it with the respective value (i.e. the loss and the hypervalue)

@@ -2,115 +2,76 @@
 
 ## What it is?
 This is a partial port of [capmangrad](https://github.com/dsprn/capmangrad) to the Rust programming language, just to get a feeling of how the language works.
-This implementation could lacks some features capmangrad added on top of [micrograd](https://github.com/karpathy/micrograd). For a complete list see the todos below.
+This implementation lacks some of the features capmangrad added on top of [micrograd](https://github.com/karpathy/micrograd). For a complete list see the Todos section below.
 
 ## How to use it
-This project can be run from the command line with the following command (once positioned in the project dir)
+This project can be run from the command line with the following command (once positioned inside the project directory)
 ```
 cargo run
 ```
-It will produce an output similar to the following one (proving it can choose the best hyperparameter for L2 regularization within a range and than train a model with it)
+Once run it will produce an output similar to the following one (choosing the best hyperparameter for L2 regularization within a given range and than training a model using it to counter overfitting)
 ```
 ==> Using Cross Validation to look for the best L2 lambda hyperparameter in values ranging from 0 to 0.01
-hyperpar=0.0005, accuracy=0.5199999999999999
-hyperpar=0.0010, accuracy=0.4899999999999999
-hyperpar=0.0015, accuracy=0.4700000000000001
-hyperpar=0.0020, accuracy=0.4700000000000000
-hyperpar=0.0025, accuracy=0.5500000000000000
-hyperpar=0.0030, accuracy=0.5599999999999999
-hyperpar=0.0035, accuracy=0.4600000000000000
-hyperpar=0.0040, accuracy=0.4600000000000000
-hyperpar=0.0045, accuracy=0.4800000000000000
-hyperpar=0.0050, accuracy=0.4700000000000000
-hyperpar=0.0055, accuracy=0.5100000000000000
-hyperpar=0.0060, accuracy=0.3700000000000000
-hyperpar=0.0065, accuracy=0.3900000000000000
-hyperpar=0.0070, accuracy=0.5800000000000001
-hyperpar=0.0075, accuracy=0.6100000000000001
-hyperpar=0.0080, accuracy=0.5300000000000000
-hyperpar=0.0085, accuracy=0.7000000000000001
-hyperpar=0.0090, accuracy=0.5300000000000000
-hyperpar=0.0095, accuracy=0.5399999999999999
-hyperpar=0.0100, accuracy=0.4000000000000000
-==> L2 lambda value=0.0085
+hyperpar=0.0005, accuracy=52%
+hyperpar=0.0010, accuracy=52%
+hyperpar=0.0015, accuracy=40%
+hyperpar=0.0020, accuracy=51%
+hyperpar=0.0025, accuracy=57%
+hyperpar=0.0030, accuracy=45%
+hyperpar=0.0035, accuracy=52%
+hyperpar=0.0040, accuracy=44%
+hyperpar=0.0045, accuracy=58%
+hyperpar=0.0050, accuracy=51%
+hyperpar=0.0055, accuracy=50%
+hyperpar=0.0060, accuracy=61%
+hyperpar=0.0065, accuracy=49%
+hyperpar=0.0070, accuracy=51%
+hyperpar=0.0075, accuracy=49%
+hyperpar=0.0080, accuracy=51%
+hyperpar=0.0085, accuracy=53%
+hyperpar=0.0090, accuracy=57%
+hyperpar=0.0095, accuracy=45%
+hyperpar=0.0100, accuracy=57%
+==> L2 lambda value=0.0060
 
 ==> Choosing inputs and relative label from a preloaded dataset...
-==> Input values=[1.40209482, -0.481136247]
+==> Input values=[1.89457429, 0.36178464]
 ==> Expected value=1
 
 ==> Start training the model...
-pass=0, alpha=0.3000000000000000, prediction=0.5332262917462256, reg=0.1343398757761642, loss=0.2178776947169797, tot_loss=0.3522175704931438
-pass=1, alpha=0.2960000000000000, prediction=1.8164191406099357, reg=0.1429920886809184, loss=0.6665402131542659, tot_loss=0.8095323018351843
-pass=2, alpha=0.2920000000000000, prediction=-0.2046651894687771, reg=0.1216067188665197, loss=1.4512182187178444, tot_loss=1.5728249375843641
-pass=3, alpha=0.2880000000000000, prediction=1.0548309226951202, reg=0.1295459226673923, loss=0.0030064300835983, tot_loss=0.1325523527509905
-pass=4, alpha=0.2840000000000000, prediction=0.9789341388110320, reg=0.1274389043199585, loss=0.0004437705076329, tot_loss=0.1278826748275914
-pass=5, alpha=0.2800000000000000, prediction=0.9968464132878455, reg=0.1265159070384329, loss=0.0000099451091511, tot_loss=0.1265258521475840
-pass=6, alpha=0.2760000000000000, prediction=0.9933526297147308, reg=0.1253597587268997, loss=0.0000441875317095, tot_loss=0.1254039462586092
-pass=7, alpha=0.2720000000000000, prediction=0.9939809065772007, reg=0.1242802354897887, loss=0.0000362294856324, tot_loss=0.1243164649754211
-pass=8, alpha=0.2680000000000000, prediction=0.9938732408866142, reg=0.1232174862857888, loss=0.0000375371772335, tot_loss=0.1232550234630223
-pass=9, alpha=0.2640000000000000, prediction=0.9938830341736591, reg=0.1221814027883539, loss=0.0000374172709206, tot_loss=0.1222188200592745
-pass=10, alpha=0.2600000000000000, prediction=0.9938763381881024, reg=0.1211698349208761, loss=0.0000374992339865, tot_loss=0.1212073341548626
-pass=11, alpha=0.2560000000000000, prediction=0.9938717954342298, reg=0.1201825124401963, loss=0.0000375548911999, tot_loss=0.1202200673313963
-pass=12, alpha=0.2520000000000000, prediction=0.9938671411712288, reg=0.1192189237583484, loss=0.0000376119574136, tot_loss=0.1192565357157620
-pass=13, alpha=0.2480000000000000, prediction=0.9938626082671708, reg=0.1182786018537758, loss=0.0000376675772822, tot_loss=0.1183162694310580
-pass=14, alpha=0.2440000000000000, prediction=0.9938581748186457, reg=0.1173610901962329, loss=0.0000377220165583, tot_loss=0.1173988122127912
-pass=15, alpha=0.2400000000000000, prediction=0.9938538405581401, reg=0.1164659457648675, loss=0.0000377752758848, tot_loss=0.1165037210407523
-pass=16, alpha=0.2360000000000000, prediction=0.9938496038120783, reg=0.1155927384098758, loss=0.0000378273732684, tot_loss=0.1156305657831442
-pass=17, alpha=0.2320000000000000, prediction=0.9938454630292275, reg=0.1147410505272544, loss=0.0000378783253246, tot_loss=0.1147789288525791
-pass=18, alpha=0.2280000000000000, prediction=0.9938414167035761, reg=0.1139104767253361, loss=0.0000379281482190, tot_loss=0.1139484048735551
-pass=19, alpha=0.2240000000000000, prediction=0.9938374633755191, reg=0.1131006235033959, loss=0.0000379768576481, tot_loss=0.1131386003610440
-pass=20, alpha=0.2200000000000000, prediction=0.9938336016305602, reg=0.1123111089409808, loss=0.0000380244688506, tot_loss=0.1123491334098314
-pass=21, alpha=0.2160000000000000, prediction=0.9938298300980886, reg=0.1115415623976522, loss=0.0000380709966185, tot_loss=0.1115796333942707
-pass=22, alpha=0.2120000000000000, prediction=0.9938261474501944, reg=0.1107916242228092, loss=0.0000381164553067, tot_loss=0.1108297406781159
-pass=23, alpha=0.2080000000000000, prediction=0.9938225524005201, reg=0.1100609454752752, loss=0.0000381608588443, tot_loss=0.1100991063341195
-pass=24, alpha=0.2040000000000000, prediction=0.9938190437031473, reg=0.1093491876523434, loss=0.0000382042207436, tot_loss=0.1093873918730870
-pass=25, alpha=0.2000000000000000, prediction=0.9938156201515178, reg=0.1086560224279840, loss=0.0000382465541103, tot_loss=0.1086942689820943
-pass=26, alpha=0.1960000000000000, prediction=0.9938122805773906, reg=0.1079811313999320, loss=0.0000382878716529, tot_loss=0.1080194192715849
-pass=27, alpha=0.1920000000000000, prediction=0.9938090238498293, reg=0.1073242058453811, loss=0.0000383281856920, tot_loss=0.1073625340310731
-pass=28, alpha=0.1880000000000000, prediction=0.9938058488742254, reg=0.1066849464850223, loss=0.0000383675081689, tot_loss=0.1067233139931913
-pass=29, alpha=0.1840000000000000, prediction=0.9938027545913510, reg=0.1060630632551730, loss=0.0000384058506550, tot_loss=0.1061014691058280
-pass=30, alpha=0.1800000000000000, prediction=0.9937997399764436, reg=0.1054582750877543, loss=0.0000384432243597, tot_loss=0.1054967183121140
-pass=31, alpha=0.1760000000000000, prediction=0.9937968040383220, reg=0.1048703096978830, loss=0.0000384796401390, tot_loss=0.1049087893380219
-pass=32, alpha=0.1720000000000000, prediction=0.9937939458185313, reg=0.1042989033788512, loss=0.0000385151085033, tot_loss=0.1043374184873545
-pass=33, alpha=0.1680000000000000, prediction=0.9937911643905157, reg=0.1037438008042791, loss=0.0000385496396256, tot_loss=0.1037823504439047
-pass=34, alpha=0.1640000000000000, prediction=0.9937884588588235, reg=0.1032047548372313, loss=0.0000385832433485, tot_loss=0.1032433380805798
-pass=35, alpha=0.1600000000000000, prediction=0.9937858283583351, reg=0.1026815263460965, loss=0.0000386159291921, tot_loss=0.1027201422752886
-pass=36, alpha=0.1560000000000000, prediction=0.9937832720535222, reg=0.1021738840270391, loss=0.0000386477063605, tot_loss=0.1022125317333996
-pass=37, alpha=0.1520000000000000, prediction=0.9937807891377307, reg=0.1016816042328355, loss=0.0000386785837494, tot_loss=0.1017202828165849
-pass=38, alpha=0.1480000000000000, prediction=0.9937783788324911, reg=0.1012044708079196, loss=0.0000387085699520, tot_loss=0.1012431793778716
-pass=39, alpha=0.1440000000000000, prediction=0.9937760403868532, reg=0.1007422749294648, loss=0.0000387376732661, tot_loss=0.1007810126027309
-pass=40, alpha=0.1400000000000000, prediction=0.9937737730767459, reg=0.1002948149543394, loss=0.0000387659016999, tot_loss=0.1003335808560393
-pass=41, alpha=0.1360000000000000, prediction=0.9937715762043614, reg=0.0998618962717777, loss=0.0000387932629781, tot_loss=0.0999006895347558
-pass=42, alpha=0.1320000000000000, prediction=0.9937694490975622, reg=0.0994433311616143, loss=0.0000388197645479, tot_loss=0.0994821509261622
-pass=43, alpha=0.1280000000000000, prediction=0.9937673911093119, reg=0.0990389386579390, loss=0.0000388454135843, tot_loss=0.0990777840715233
-pass=44, alpha=0.1240000000000000, prediction=0.9937654016171281, reg=0.0986485444180303, loss=0.0000388702169957, tot_loss=0.0986874146350260
-pass=45, alpha=0.1200000000000000, prediction=0.9937634800225581, reg=0.0982719805964364, loss=0.0000388941814290, tot_loss=0.0983108747778655
-pass=46, alpha=0.1160000000000000, prediction=0.9937616257506751, reg=0.0979090857240743, loss=0.0000389173132746, tot_loss=0.0979480030373489
-pass=47, alpha=0.1120000000000000, prediction=0.9937598382495966, reg=0.0975597045922250, loss=0.0000389396186712, tot_loss=0.0975986442108962
-pass=48, alpha=0.1080000000000000, prediction=0.9937581169900234, reg=0.0972236881413087, loss=0.0000389611035102, tot_loss=0.0972626492448189
-pass=49, alpha=0.1040000000000000, prediction=0.9937564614647992, reg=0.0969008933543259, loss=0.0000389817734405, tot_loss=0.0969398751277665
+pass=0, alpha=0.030, prediction=-0.679357, reg=0.630883, loss=2.820238, tot_loss=3.451121
+pass=1, alpha=0.030, prediction=3.907141, reg=0.631138, loss=8.451470, tot_loss=9.082608
+pass=2, alpha=0.029, prediction=-1.696822, reg=0.618529, loss=7.272851, tot_loss=7.891380
+pass=3, alpha=0.029, prediction=0.286639, reg=0.612443, loss=0.508884, tot_loss=1.121327
+pass=4, alpha=0.028, prediction=0.666767, reg=0.612471, loss=0.111044, tot_loss=0.723515
+pass=5, alpha=0.028, prediction=0.814095, reg=0.612441, loss=0.034561, tot_loss=0.647002
+pass=6, alpha=0.028, prediction=0.899078, reg=0.612287, loss=0.010185, tot_loss=0.622472
+pass=7, alpha=0.027, prediction=0.945714, reg=0.612033, loss=0.002947, tot_loss=0.614980
+pass=8, alpha=0.027, prediction=0.970530, reg=0.611718, loss=0.000868, tot_loss=0.612586
+pass=9, alpha=0.026, prediction=0.983570, reg=0.611371, loss=0.000270, tot_loss=0.611641
+pass=10, alpha=0.026, prediction=0.990417, reg=0.611009, loss=0.000092, tot_loss=0.611101
 ==> DONE
 
 ```
 
-To compile the project run the following in your terminal (for a not so optimized dev executable)
+To compile the project run the following command in your terminal (this generates a dev executable, i.e. not optimized for production)
 ```
 cargo build
 ```
-or (for a production ready executable)
+or for a production ready executable use this instead
 ```
 cargo build --release
 ```
 
 ## Tests
-To run the tests associated with most the structures and their methods present in this code type
+To run the tests associated with most the structures and methods present in this code type
 ```
 cargo test
 ```
-and you'll get an output with the results.
+and you'll get an output with the tests results.
 
 ## Todos
-Following are the features that were present in capmangrad but that are missing in this version.
-Listed here in a random order:
-* saving model to file
-* computational graph visualization
+Following are the features that are present in capmangrad but that are still missing in this version.
+Listed here in no particular order:
+* save model to a json file
+* visualize the computational graph

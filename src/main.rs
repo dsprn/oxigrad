@@ -13,7 +13,7 @@ fn main() {
     // WATCH OUT, changing the following hyperparameter (i.e. the NN architecture)
     // could require to change other hyperparameters as well like the alpha
     // and, in general, to do some tuning before training the resulting NN
-    let arch = vec![5, 5, 1];
+    let arch = vec![16, 16, 1];
     let m = Model::new(2, &arch);
 
     // cross validation to find best L2 lambda hyperparameter
@@ -59,7 +59,7 @@ fn main() {
         }
 
         println!(
-            "pass={}, alpha={:.16}, prediction={:.16}, reg={:.16}, loss={:.16}, tot_loss={:.16}", 
+            "pass={}, alpha={:.3}, prediction={:.6}, reg={:.6}, loss={:.6}, tot_loss={:.6}", 
             pass,
             alpha(pass, iterations),
             preds.get_data(),
@@ -67,6 +67,11 @@ fn main() {
             loss.get_data(),
             tot_loss.get_data(),
         );
+
+        // early exit (when results are good enough)
+        if loss.get_data() < 0.0001 {
+            break;
+        }
     }
     println!("==> DONE");
 }

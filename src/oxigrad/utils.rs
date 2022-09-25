@@ -4,7 +4,7 @@ use crate::oxigrad::engine::Operation;
 // dynamic learning rate function dependent on # of cycle iterations (from 0 to a maximum of 500 passes)
 // mind that the hyperparameters chosen here could not work well for some NN architectures
 pub fn alpha(pass: i32, iterations: i32) -> f64 {
-    0.3 - 0.2 * pass as f64 / iterations as f64
+    0.03 - 0.02 * pass as f64 / iterations as f64
 }
 
 pub fn mse(predicted: &Value, exp: f64) -> Value {
